@@ -3,4 +3,5 @@
 Cargo.lock
 bin/
 pkg/
+/www/dist
 wasm-pack.log

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-		<style>
+		<style type="text/css">
 			body {
 				position: absolute;
 				top: 0;
@@ -13,13 +13,26 @@
 				align-items: center;
 				justify-content: center;
 			}
+			#ignite {
+				z-index: 2;
+				position: relative;
+				top: -155px;
+				left: 0px;
+			}
+			#vent {
+				z-index: 2;
+				position: relative;
+				top: -153px;
+				left: 0px;
+			}
 		</style>
     <meta charset="utf-8">
     <title>reactor WIP</title>
   </head>
   <body>
-		<canvas id="reactor-canvas"></canvas>
+		<canvas id="reactor-canvas" style="z-index:1"></canvas>
 		<button id="ignite">🔴</button>
+		<button id="vent">☐</button>
 		<button id="fuel-valve"></button>
     <script src="./bootstrap.js"></script>
   </body>
