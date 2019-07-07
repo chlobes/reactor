@@ -19,6 +19,7 @@ pub struct Reactor {
 #[wasm_bindgen]
 impl Reactor {
 	pub fn new() -> Self {
+		utils::set_panic_hook();
 		Self {
 			fuel: 1.4,
 			neutrons: 0.0,
