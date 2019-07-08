@@ -3,6 +3,7 @@
   <head>
 		<style type="text/css">
 			body {
+				background: url("bg.png");
 				position: absolute;
 				top: 0;
 				left: 0;
@@ -25,6 +26,19 @@
 				top: -153px;
 				left: 0px;
 			}
+			#water-tank-canvas {
+				position: relative;
+				z-index: 1;
+				top: -450px;
+				left: -350px;
+			}
+			#water-valve-slider {
+				position: relative;
+				visibility: hidden;
+				top: -440px;
+				left: -100px;
+				width: 35%;
+			}
 		</style>
     <meta charset="utf-8">
     <title>reactor WIP</title>
@@ -33,7 +47,13 @@
 		<canvas id="reactor-canvas" style="z-index:1"></canvas>
 		<button id="ignite">🔴</button>
 		<button id="vent">☐</button>
+		<canvas id="water-tank-canvas"></canvas>
+		<div class="slidecontainer">
+			<input type="range" min="0" max="100" value="10" class="slider" id="water-valve-slider">
+		</div>
 		<button id="fuel-valve"></button>
+		<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="./bootstrap.js"></script>
+		<script src="./roundslider.js"></script>
   </body>
 </html>
