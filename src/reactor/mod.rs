@@ -179,10 +179,11 @@ impl Reactor {
 		quad(v, vec3(-0.03 + 0.005, bar_size.y / 2.0 - 0.06 + 0.005, 3.0), vec2(0.05, 0.05), Texture(0));
 		quad(v, vec3(-0.03, bar_size.y / 2.0 - 0.13, 2.0), vec2(0.06, 0.06), Color(DARK_GREY));
 		quad(v, vec3(-0.03 + 0.005, bar_size.y / 2.0 - 0.13 + 0.005, 3.0), vec2(0.05, 0.05), Texture(if self.vent { 2 } else { 1 }));
-		if self.fuel_valve_unlocked() {
+		//if self.fuel_valve_unlocked() {
+		if true {
 			let p = self.fuel_valve_pos();
 			quad(v, p.extend(2.0), vec2(0.06, 0.06), Color(DARK_GREY));
-			let n = if self.fuel_valve_blocked() { 0 } else if self.fuel_valve() { 5 } else { 4 };
+			let n = if self.fuel_valve_blocked() { 4 } else if self.fuel_valve() { 6 } else { 5 };
 			quad(v, (p + vec2(0.005, 0.005)).extend(2.0), vec2(0.05, 0.05), Texture(n));
 		}
 		if self.water_tank.unlocked {
@@ -230,7 +231,7 @@ impl Reactor {
 	}
 	
 	fn ignite(&mut self) {
-		if self.fuel >= FUEL_NEUTRON_RATIO.recip() {
+		if self.neutrons < 1.01 && self.fuel >= FUEL_NEUTRON_RATIO.recip() {
 			self.neutrons += 0.99;
 			self.fuel -= FUEL_NEUTRON_RATIO.recip();
 		}

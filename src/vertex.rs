@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 const TEXTURE_RES: u32 = 512;
-const TEXTURE_SIZE: Vec2<usize> = Vec2{ x: 2, y: 2 };
+const TEXTURE_SIZE: Vec2<usize> = Vec2{ x: 2, y: 3 };
 
 #[derive(Debug,Copy,Clone)]
 pub enum Tex {
