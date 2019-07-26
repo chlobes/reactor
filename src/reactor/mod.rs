@@ -179,8 +179,7 @@ impl Reactor {
 		quad(v, vec3(-0.03 + 0.005, bar_size.y / 2.0 - 0.06 + 0.005, 3.0), vec2(0.05, 0.05), Texture(0));
 		quad(v, vec3(-0.03, bar_size.y / 2.0 - 0.13, 2.0), vec2(0.06, 0.06), Color(DARK_GREY));
 		quad(v, vec3(-0.03 + 0.005, bar_size.y / 2.0 - 0.13 + 0.005, 3.0), vec2(0.05, 0.05), Texture(if self.vent { 2 } else { 1 }));
-		//if self.fuel_valve_unlocked() {
-		if true {
+		if self.fuel_valve_unlocked() {
 			let p = self.fuel_valve_pos();
 			quad(v, p.extend(2.0), vec2(0.06, 0.06), Color(DARK_GREY));
 			let n = if self.fuel_valve_blocked() { 4 } else if self.fuel_valve() { 6 } else { 5 };
