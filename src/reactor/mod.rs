@@ -110,11 +110,11 @@ impl Reactor {
 		}
 		if self.refinery.unlocked {
 			let val = (self.refinery.fuel_valve.val - 0.5) * 2.0;
-			let f = if val > 0.0 {
+			let f = if val > 0.0 { //refinery to reactor
 				(REFINERY_FUEL_FLOW_RATE * val.powi(2) * self.fuel * (10.0 - self.refinery.fuel) / 10.0)
 					.min(self.fuel.min(REFINERY_FUEL_CAPACITY - self.refinery.fuel) / DT)
-			} else {
-				(REFINERY_FUEL_FLOW_RATE * val.powi(2) * self.refinery.fuel * (3.0 - self.fuel) / 3.0)
+			} else { //reactor to refinery
+				(REFINERY_FUEL_FLOW_RATE * val.abs().powi(2) * -1.0 * self.refinery.fuel * (3.0 - self.fuel) / 3.0)
 					.min(self.refinery.fuel.min(3.0 - self.fuel) / DT)
 			};
 			self.fuel -= DT * f;
@@ -128,6 +128,26 @@ impl Reactor {
 			self.waste -= DT * w;
 			self.refinery.waste += DT * w;
 			self.refinery.tick();
+		}
+		{
+			if self.fuel < 0.0 {
+				log!("fuel{}",self.fuel);
+			}
+			if self.neutrons < 0.0 {
+				log!("neutrons{}",self.neutrons);
+			}
+			if self.waste < 0.0 {
+				log!("waste{}",self.waste);
+			}
+			if self.refinery.fuel < 0.0 {
+				log!("refinery.fuel{}",self.refinery.fuel);
+			}
+			if self.refinery.neutrons < 0.0 {
+				log!("refinery.neutrons{}",self.refinery.neutrons);
+			}
+			if self.refinery.waste < 0.0 {
+				log!("refinery.waste{}",self.refinery.waste);
+			}
 		}
 		self.heat = self.heat.max(0.0);
 	}
@@ -276,7 +296,7 @@ impl WaterTank {
 			valve: Dial {
 				pos: valve_pos + valve_size / 12.0,
 				size: valve_size * 5.0 / 6.0,
-				val: 0.5,
+				val: 0.0,
 				range: Some((0.0, 0.5)),
 				tex: Texture(3),
 				z_index: 3.0,
@@ -353,13 +373,13 @@ const REFINERY_NEUTRON_CAPACITY: f32 = 0.2;
 const REFINERY_WASTE_CAPACITY: f32 = 20.0;
 
 struct Refinery {
+	unlocked: bool,
 	fuel: f32,
 	neutrons: f32,
 	waste: f32,
 	fuel_valve: Dial,
 	neutron_valve: Dial,
 	waste_valve: Dial,
-	unlocked: bool
 }
 
 impl Refinery {
@@ -371,6 +391,7 @@ impl Refinery {
 		let neutron_valve_size = vec2(0.1,0.1);
 		let waste_valve_size = vec2(0.1,0.1);
 		Self {
+			unlocked: false,
 			fuel: 0.0,
 			neutrons: 0.0,
 			waste: 0.0,
@@ -387,7 +408,7 @@ impl Refinery {
 				pos: neutron_valve_pos + neutron_valve_size / 12.0,
 				size: neutron_valve_size * 5.0 / 6.0,
 				val: 0.5,
-				range: Some((0.0, 0.5)),
+				range: Some((0.0, 0.0)),
 				tex: Texture(3),
 				z_index: 3.0,
 				background: Some(make_quad(neutron_valve_pos.extend(2.0), neutron_valve_size, Color(DARK_GREY), Mat2::ident())),
@@ -396,12 +417,11 @@ impl Refinery {
 				pos: waste_valve_pos + waste_valve_size / 12.0,
 				size: waste_valve_size * 5.0 / 6.0,
 				val: 0.5,
-				range: Some((0.0, 0.5)),
+				range: Some((0.0, 0.0)),
 				tex: Texture(3),
 				z_index: 3.0,
 				background: Some(make_quad(waste_valve_pos.extend(2.0), waste_valve_size, Color(DARK_GREY), Mat2::ident())),
 			},
-			unlocked: false,
 		}
 	}
 	
