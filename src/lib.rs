@@ -1,9 +1,9 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::{WebGlProgram,WebGl2RenderingContext,HtmlImageElement,WebGlShader,MouseEvent,HtmlCanvasElement};
+use web_sys::{WebGlProgram,WebGlRenderingContext,HtmlImageElement,WebGlShader,MouseEvent,HtmlCanvasElement};
 use std::rc::Rc;
 use std::cell::{RefCell,Cell};
-use self::WebGl2RenderingContext as GL;
+use self::WebGlRenderingContext as GL;
 
 macro_rules! log {
 	( $( $t:tt )* ) => {
@@ -23,15 +23,10 @@ pub fn start() -> Result<(), JsValue> {
 	#[cfg(feature = "console_error_panic_hook")]
 	console_error_panic_hook::set_once();
 	
-	log!("atan2(1,1): {}",1f32.atan2(1f32));
-	log!("atan2(1,-1): {}",1f32.atan2(-1f32));
-	log!("atan2(-1,1): {}",(-1f32).atan2(1f32));
-	log!("atan2(-1,-1): {}",(-1f32).atan2(-1f32));
-	
 	let document = window().document().unwrap();
 	let canvas = document.get_element_by_id("canvas").unwrap();
 	let canvas = Rc::new(canvas.dyn_into::<web_sys::HtmlCanvasElement>()?);
-	let context = Rc::new(canvas.get_context("webgl2")?.expect("browser does not support webgl").dyn_into::<GL>()?);
+	let context = Rc::new(canvas.get_context("webgl")?.expect("browser does not support webgl").dyn_into::<GL>()?);
 	
 	let vert_shader = compile_shader(
 		&context,
@@ -71,11 +66,11 @@ pub fn start() -> Result<(), JsValue> {
 		context2.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_MAG_FILTER, GL::NEAREST as i32);
 		context2.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_WRAP_S, GL::CLAMP_TO_EDGE as i32);
 		context2.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_WRAP_T, GL::CLAMP_TO_EDGE as i32);
-		context2.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_MIN_LOD, 0);
-		context2.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_MAX_LOD, 0);
-		context2.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_MAX_LEVEL, 0);
+		//context2.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_MIN_LOD, 0);
+		//context2.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_MAX_LOD, 0);
+		//context2.tex_parameteri(GL::TEXTURE_2D, GL::TEXTURE_MAX_LEVEL, 0);
 		
-		context2.tex_image_2d_with_u32_and_u32_and_html_image_element(
+		context2.tex_image_2d_with_u32_and_u32_and_image(
 			GL::TEXTURE_2D,
 			0,
 			GL::RGBA as i32,
@@ -122,7 +117,6 @@ pub fn start() -> Result<(), JsValue> {
 	context.depth_func(GL::GEQUAL);
 	context.enable(GL::BLEND);
 	context.blend_func(GL::SRC_ALPHA, GL::ONE_MINUS_SRC_ALPHA);
-	context.pixel_storei(GL::UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
 	
 	let reactor = Rc::new(RefCell::new(Reactor::new()));
 	
@@ -159,7 +153,7 @@ pub fn start() -> Result<(), JsValue> {
 			let pos = screen_coords(e.client_x(), e.client_y(), &canvas2);
 			let delta = vec2(e.movement_x(), -e.movement_y()).f32() * 2.0 / canvas2.client_height() as f32;
 			if !reactor2.borrow_mut().drag(initial_pos - offset2.get(), pos - offset2.get(), delta) {
-				offset2.set(offset2.get() + delta);
+				offset2.set(modulus(offset2.get() + delta + 5.0, 10.0) - 5.0);
 				context2.uniform2f(offset_location.as_ref(), offset2.get().x, offset2.get().y);
 			}
 		}
@@ -175,7 +169,6 @@ pub fn start() -> Result<(), JsValue> {
 	// `WebAssembly.Memory` buffer, but if we allocate more pages for ourself
 	// (aka do a memory allocation in Rust) it'll cause the buffer to change,
 	// causing the `Float32Array` to be invalid.
-	//
 	// As a result, after `Float32Array::view` we have to be very careful not to
 	// do any memory allocations before it's dropped.
 	

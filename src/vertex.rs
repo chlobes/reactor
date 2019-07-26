@@ -69,11 +69,11 @@ pub fn make_quad(pos: Vec3<f32>, mut size: Vec2<f32>, tex: Tex, trans: Mat2<f32>
 	]
 }
 
-pub fn quad(v: &mut Vec<Vertex>, mut pos: Vec3<f32>, mut size: Vec2<f32>, tex: Tex) {
+pub fn quad(v: &mut Vec<Vertex>, pos: Vec3<f32>, size: Vec2<f32>, tex: Tex) {
 	v.extend_from_slice(&make_quad(pos, size, tex, Mat2::ident()));
 }
 
-pub fn transformed_quad(v: &mut Vec<Vertex>, mut pos: Vec3<f32>, mut size: Vec2<f32>, tex: Tex, trans: Mat2<f32>) {
+pub fn transformed_quad(v: &mut Vec<Vertex>, pos: Vec3<f32>, size: Vec2<f32>, tex: Tex, trans: Mat2<f32>) {
 	v.extend_from_slice(&make_quad(pos, size, tex, trans));
 }
 
