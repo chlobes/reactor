@@ -39,7 +39,7 @@ const WATER_TRANSFER_RATE: f32 = WATER_REFILL_RATE * 100.0;
 const REACTOR_MASS: f32 = 10.0;
 const EVAPORATION_RATE: f32 = WATER_REFILL_RATE * 0.8;
 const REFINERY_FUEL_FLOW_RATE: f32 = 0.1;
-const REFINERY_NEUTRON_FLOW_RATE: f32 = REFINERY_NEUTRON_DECAY_RATE * REFINERY_NEUTRON_CAPACITY;
+const REFINERY_NEUTRON_FLOW_RATE: f32 = REFINERY_NEUTRON_DECAY_RATE * REFINERY_NEUTRON_CAP;
 const REFINERY_WASTE_FLOW_RATE: f32 = 1.0;
 
 pub struct Reactor {
@@ -111,8 +111,8 @@ impl Reactor {
 		if self.refinery.unlocked {
 			let val = (self.refinery.fuel_valve.val - 0.5) * 2.0;
 			let f = if val > 0.0 { //refinery to reactor
-				(REFINERY_FUEL_FLOW_RATE * val.powi(2) * self.fuel * (10.0 - self.refinery.fuel) / 10.0)
-					.min(self.fuel.min(REFINERY_FUEL_CAPACITY - self.refinery.fuel) / DT)
+				(REFINERY_FUEL_FLOW_RATE * val.powi(2) * self.fuel * (REFINERY_FUEL_CAP - self.refinery.fuel) / REFINERY_FUEL_CAP)
+					.min(self.fuel.min(REFINERY_FUEL_CAP - self.refinery.fuel) / DT)
 			} else { //reactor to refinery
 				(REFINERY_FUEL_FLOW_RATE * val.abs().powi(2) * -1.0 * self.refinery.fuel * (3.0 - self.fuel) / 3.0)
 					.min(self.refinery.fuel.min(3.0 - self.fuel) / DT)
@@ -120,11 +120,14 @@ impl Reactor {
 			self.fuel -= DT * f;
 			self.refinery.fuel += DT * f;
 			let n = (REFINERY_NEUTRON_FLOW_RATE * self.refinery.neutron_valve.val * self.neutrons)
-				.min(self.neutrons.min(REFINERY_NEUTRON_CAPACITY - self.refinery.neutrons) / DT);
+				.min(self.neutrons.min(REFINERY_NEUTRON_CAP - self.refinery.neutrons) / DT);
+			if n < 0.0 {
+				log!("n: {}, neutrons: {}, refinery.neutrons: {}",n,self.neutrons,self.refinery.neutrons);
+			}
 			self.neutrons -= DT * n;
 			self.refinery.neutrons += DT * n;
 			let w = (REFINERY_WASTE_FLOW_RATE * self.refinery.waste_valve.val * self.waste / 10.0)
-				.min(self.waste.min(REFINERY_WASTE_CAPACITY - self.refinery.waste) / DT);
+				.min(self.waste.min(REFINERY_WASTE_CAP - self.refinery.waste) / DT);
 			self.waste -= DT * w;
 			self.refinery.waste += DT * w;
 			self.refinery.tick();
@@ -227,8 +230,8 @@ impl Reactor {
 	}
 	
 	fn ignite(&mut self) {
-		if self.neutrons < 0.001 && self.fuel >= 1.0 + FUEL_NEUTRON_RATIO.recip() {
-			self.neutrons = 0.99;
+		if self.fuel >= FUEL_NEUTRON_RATIO.recip() {
+			self.neutrons += 0.99;
 			self.fuel -= FUEL_NEUTRON_RATIO.recip();
 		}
 	}
@@ -288,7 +291,7 @@ struct WaterTank {
 impl WaterTank {
 	fn new() -> Self {
 		let valve_pos = vec2(-0.4, 0.27);
-		let valve_size = vec2(0.1, 0.1);
+		let valve_size = 0.1;
 		Self {
 			unlocked: false,
 			water: 20.0,
@@ -300,7 +303,7 @@ impl WaterTank {
 				range: Some((0.0, 0.5)),
 				tex: Texture(3),
 				z_index: 3.0,
-				background: Some(make_quad(valve_pos.extend(2.0), valve_size, Color(DARK_GREY), Mat2::ident())),
+				background: Some(make_quad(valve_pos.extend(2.0), vec2(valve_size,valve_size), Color(DARK_GREY), Mat2::ident())),
 			},
 		}
 	}
@@ -368,9 +371,9 @@ impl WaterTank {
 const WASTE_FUEL_RATIO: f32 = 0.2;
 const REFINERY_NEUTRON_DECAY_RATE: f32 = 0.03;
 const REFINERY_REACTION_RATE: f32 = 0.1;
-const REFINERY_FUEL_CAPACITY: f32 = 10.0;
-const REFINERY_NEUTRON_CAPACITY: f32 = 0.2;
-const REFINERY_WASTE_CAPACITY: f32 = 20.0;
+const REFINERY_FUEL_CAP: f32 = 10.0;
+const REFINERY_NEUTRON_CAP: f32 = 0.2;
+const REFINERY_WASTE_CAP: f32 = 20.0;
 
 struct Refinery {
 	unlocked: bool,
@@ -387,9 +390,9 @@ impl Refinery {
 		let fuel_valve_pos = vec2(-0.55,-0.4);
 		let neutron_valve_pos = vec2(-0.35,-0.4);
 		let waste_valve_pos = vec2(-0.2,-0.4);
-		let fuel_valve_size = vec2(0.1,0.1);
-		let neutron_valve_size = vec2(0.1,0.1);
-		let waste_valve_size = vec2(0.1,0.1);
+		let fuel_valve_size = 0.1;
+		let neutron_valve_size = 0.1;
+		let waste_valve_size = 0.1;
 		Self {
 			unlocked: false,
 			fuel: 0.0,
@@ -402,25 +405,25 @@ impl Refinery {
 				range: Some((0.0, 0.5)),
 				tex: Texture(3),
 				z_index: 3.0,
-				background: Some(make_quad(fuel_valve_pos.extend(2.0), fuel_valve_size, Color(DARK_GREY), Mat2::ident())),
+				background: Some(make_quad(fuel_valve_pos.extend(2.0), vec2(fuel_valve_size,fuel_valve_size), Color(DARK_GREY), Mat2::ident())),
 			},
 			neutron_valve: Dial {
 				pos: neutron_valve_pos + neutron_valve_size / 12.0,
 				size: neutron_valve_size * 5.0 / 6.0,
-				val: 0.5,
-				range: Some((0.0, 0.0)),
+				val: 0.0,
+				range: Some((0.0, 0.5)),
 				tex: Texture(3),
 				z_index: 3.0,
-				background: Some(make_quad(neutron_valve_pos.extend(2.0), neutron_valve_size, Color(DARK_GREY), Mat2::ident())),
+				background: Some(make_quad(neutron_valve_pos.extend(2.0), vec2(neutron_valve_size,neutron_valve_size), Color(DARK_GREY), Mat2::ident())),
 			},
 			waste_valve: Dial {
 				pos: waste_valve_pos + waste_valve_size / 12.0,
 				size: waste_valve_size * 5.0 / 6.0,
-				val: 0.5,
-				range: Some((0.0, 0.0)),
+				val: 0.0,
+				range: Some((0.0, 0.5)),
 				tex: Texture(3),
 				z_index: 3.0,
-				background: Some(make_quad(waste_valve_pos.extend(2.0), waste_valve_size, Color(DARK_GREY), Mat2::ident())),
+				background: Some(make_quad(waste_valve_pos.extend(2.0), vec2(waste_valve_size,waste_valve_size), Color(DARK_GREY), Mat2::ident())),
 			},
 		}
 	}
@@ -439,11 +442,11 @@ impl Refinery {
 		let (bar_size, bar_gap, bar_spacing) = (self.bar_size(), self.bar_gap(), self.bar_spacing());
 		quad(v, panel_pos.extend(1.0), panel_size, Color(DULL_RED));
 		quad(v, (panel_pos + bar_gap).extend(2.0), bar_size, Color(BLACK));
-		quad(v, (panel_pos + bar_gap).extend(3.0), bar_size * vec2(1.0, self.fuel / REFINERY_FUEL_CAPACITY), Color(YELLOW));
+		quad(v, (panel_pos + bar_gap).extend(3.0), bar_size * vec2(1.0, self.fuel / REFINERY_FUEL_CAP), Color(YELLOW));
 		quad(v, (panel_pos + bar_gap + vec2(bar_spacing, 0.0)).extend(2.0), bar_size, Color(BLACK));
-		quad(v, (panel_pos + bar_gap + vec2(bar_spacing, 0.0)).extend(3.0), bar_size * vec2(1.0, self.neutrons / REFINERY_NEUTRON_CAPACITY), Color(WHITE));
+		quad(v, (panel_pos + bar_gap + vec2(bar_spacing, 0.0)).extend(3.0), bar_size * vec2(1.0, self.neutrons / REFINERY_NEUTRON_CAP), Color(WHITE));
 		quad(v, (panel_pos + bar_gap + vec2(bar_spacing, 0.0) * 4.0).extend(2.0), bar_size, Color(BLACK));
-		quad(v, (panel_pos + bar_gap + vec2(bar_spacing, 0.0) * 4.0).extend(3.0), bar_size * vec2(1.0, self.waste / REFINERY_WASTE_CAPACITY), Color(GREEN));
+		quad(v, (panel_pos + bar_gap + vec2(bar_spacing, 0.0) * 4.0).extend(3.0), bar_size * vec2(1.0, self.waste / REFINERY_WASTE_CAP), Color(GREEN));
 		self.fuel_valve.render(v);
 		self.neutron_valve.render(v);
 		self.waste_valve.render(v);
