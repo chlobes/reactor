@@ -83,7 +83,7 @@ impl Reactor {
 		}
 		let reaction_speed = (REACTION_RATE * self.fuel * self.neutrons.powf(1.02) - 0.001).max(0.0).min(self.fuel / DT);
 		let heat_exchange_rate = FUEL_NEUTRON_RATIO * REACTION_RATE * self.neutrons;
-		self.fuel += DT * (REACTION_RATE * (if self.fuel_valve() { 1.0 } else { -0.2 } + if self.vent { -5.0 } else { 0.0 }) - reaction_speed);
+		self.fuel += DT * (REACTION_RATE * (if self.fuel_valve() { 1.0 } else { 0.0 } + if self.vent { -5.0 } else { 0.0 }) - reaction_speed);
 		self.waste += DT * FUEL_WASTE_RATIO * reaction_speed;
 		self.neutrons += DT * (FUEL_NEUTRON_RATIO * reaction_speed - heat_exchange_rate);
 		self.heat += DT * (NEUTRON_HEAT_RATIO * heat_exchange_rate - HEAT_DISSIPATION_RATE * if self.heat > 4.0 { self.heat / 4.0 } else { 1.0 }) / (REACTOR_MASS + self.water);
@@ -176,7 +176,7 @@ impl Reactor {
 		quad(v, vec3(panel_pos.x + bar_gap + bar_spacing * 2.0, bar_size.y / 6.0, 4.0), vec2(bar_size.x, bar_size.y * ((self.neutrons - 2.0) / 3.0).max(0.0)), Color(RED));
 		quad(v, vec3(panel_pos.x + bar_gap + bar_spacing, -bar_size.y / 6.0 - 0.0015, 5.0), vec2(bar_size.x + 0.05, 0.003), Color(DARK_GREEN_TRANSPARENT));
 		quad(v, vec3(-0.03, bar_size.y / 2.0 - 0.06, 2.0), vec2(0.06, 0.06), Color(DARK_GREY));
-		quad(v, vec3(-0.03 + 0.005, bar_size.y / 2.0 - 0.06 + 0.005, 3.0), vec2(0.05, 0.05), Texture(0));
+		quad(v, vec3(-0.03 + 0.005, bar_size.y / 2.0 - 0.06 + 0.005, 3.0), vec2(0.05, 0.05), Texture(if self.heat < 2.0 { 0 } else { 4 }));
 		quad(v, vec3(-0.03, bar_size.y / 2.0 - 0.13, 2.0), vec2(0.06, 0.06), Color(DARK_GREY));
 		quad(v, vec3(-0.03 + 0.005, bar_size.y / 2.0 - 0.13 + 0.005, 3.0), vec2(0.05, 0.05), Texture(if self.vent { 2 } else { 1 }));
 		if self.fuel_valve_unlocked() {
@@ -230,9 +230,9 @@ impl Reactor {
 	}
 	
 	fn ignite(&mut self) {
-		if self.neutrons < 1.01 && self.fuel >= FUEL_NEUTRON_RATIO.recip() {
-			self.neutrons += 0.99;
-			self.fuel -= FUEL_NEUTRON_RATIO.recip();
+		if self.heat < 2.0 && self.neutrons < 1.0 && self.fuel >= FUEL_NEUTRON_RATIO.recip() * 2.0 {
+			self.neutrons += 1.0;
+			self.fuel -= FUEL_NEUTRON_RATIO.recip() * 2.0;
 		}
 	}
 	

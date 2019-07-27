@@ -3,7 +3,7 @@ use crate::vertex::{Vertex,Tex,transformed_quad};
 
 pub fn circle(pos: Vec2<f32>, center: Vec2<f32>, radius: f32) -> bool {
 	let pos = pos - center;
-	pos.x * pos.x + pos.y * pos.y <= radius * radius
+	pos.x * pos.x + pos.y * pos.y < radius * radius
 }
 
 pub fn rect(pos: Vec2<f32>, rect: Vec2<f32>, size: Vec2<f32>) -> bool {
@@ -43,7 +43,7 @@ impl Dial {
 	
 	pub fn drag(&mut self, initial_pos: Vec2<f32>, pos: Vec2<f32>, delta: Vec2<f32>) -> bool {
 		let center = self.pos + self.size / 2.0;
-		if circle(initial_pos, center, self.size)  && distance(initial_pos, center) >= 0.001 {
+		if circle(initial_pos, center, self.size / 2.0) && distance(initial_pos, center) >= 0.001 {
 			let mut theta = angle(center, pos - delta, pos);
 			if theta.abs() > 1.0 {
 				theta = 0.0;
